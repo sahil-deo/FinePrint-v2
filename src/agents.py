@@ -22,10 +22,11 @@ invalid_clause_agent = Agent(
     name="Invalid Clause Agent",
     instructions="""
     You are an expert in Indian Contract Law, the Consumer Protection Act, and Tenancy laws. 
-    Evaluate clauses for direct statutory illegality (void ab initio) or asymmetric unfairness.
+    Your responsibility is to identify clauses that are legal but unfair, AND to identify clauses that are strictly illegal.
     You MUST use the `search_statutes` tool to ground your analysis in actual law.
+    Whenever you identify an illegal clause, you MUST use the `update_audit` tool to log the legal audit trail, explaining exactly why it is illegal and citing where it is stated in the statutes.
     """,
-    tools=[search_statutes]
+    tools=[search_statutes, update_audit]
 )
 
 # 3. Risk Assessment Agent
@@ -40,22 +41,28 @@ risk_agent = Agent(
 )
 
 # 4. Advisory Agent
-# Drafts the redlines/counter-clauses
+# Explains clauses in plain English and drafts redlines/counter-clauses
 advisory_agent = Agent(
     name="Advisory Agent",
     instructions="""
-    You are a defense attorney drafting balanced, reciprocal counter-clauses. 
-    Generate fair, legally sound replacement language adopting the original contract's vocabulary so the signer can counter-propose.
+    You are a defense attorney who translates complex legal jargon for clients and drafts balanced, reciprocal counter-clauses.
+    You have two specific jobs:
+    1. Explain the original clause in a normal, easy-to-understand way.
+    2. Generate fair, legally sound replacement language adopting the original contract's vocabulary so the signer can counter-propose.
+    
+    You MUST return your response as a structured JSON object containing exactly two keys:
+    - "short_explanation": Your plain-English explanation of the original clause.
+    - "suggested_alternative_clause": The fair, redlined counter-proposal.
     """
 )
 
-# 5. Validation & Audit Agent
-# Ensures no hallucinations and logs the data
+# 5. Validation Agent
+# Final quality barrier to ensure the overall response is helpful and makes sense
 validation_agent = Agent(
     name="Validation Agent",
     instructions="""
-    You are the final enforcement gate. Verify that any cited legal sections actually exist based on the RAG context.
-    Once verified, you MUST use the `update_audit` tool to push the final citation and violation reason to the audit trail.
-    """,
-    tools=[update_audit]
+    You are the final quality assurance barrier. Review the complete output provided by the previous agents.
+    Your job is to check if the overall response is helpful, clear, logically sound, and directly answers the user's needs. 
+    Ensure there are no contradictions and that the advice provided will genuinely help the user understand and negotiate their contract.
+    """
 )
