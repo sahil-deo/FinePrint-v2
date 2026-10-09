@@ -41,8 +41,24 @@ def get_audit_logs(session_id: str):
         print(f"Error fetching audit logs: {e}")
         return []
 
+import json
+
+@app.get("/api/status")
+def get_status():
+    try:
+        with open("/tmp/synapse_status.json", "r") as f:
+            return json.load(f)
+    except Exception:
+        return {"step": 0, "message": "Initializing..."}
+
 @app.post("/api/analyze")
 async def analyze_document(file: UploadFile = File(...)):
+    # Reset status
+    try:
+        os.remove("/tmp/synapse_status.json")
+    except Exception:
+        pass
+
     temp_path = f"/tmp/{file.filename}"
     with open(temp_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
