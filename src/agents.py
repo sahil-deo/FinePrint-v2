@@ -1,73 +1,65 @@
+import os
 from google.adk import Agent
+
+GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-2.0-flash")
 
 # Import our custom standard Python tools
 from tools.rag import search_statutes
 from tools.risk import calculate_risk
 from tools.audit import update_audit
 
-# 1. Clause Identification Agent
-# Breaks the raw markdown document into atomic clause objects
 clause_id_agent = Agent(
     name="clause_identification_agent",
-    model="gemini-flash-latest",
+    model=GEMINI_MODEL,
     instruction="""
     You are a contract parsing expert. 
     Receive raw markdown contract text and break it down into atomic, numbered clause objects.
-    Preserve the parent headings for context. Output strictly in JSON format.
+    Preserve the parent headings for context. 
+    You MUST output strictly in JSON format as an array of objects with keys: `clause_number` and `text`.
     """
 )
 
-# 2. Invalid Clause Agent
-# Checks clauses against Indian statutory law and fairness heuristics
 invalid_clause_agent = Agent(
     name="invalid_clause_agent",
-    model="gemini-flash-latest",
+    model=GEMINI_MODEL,
     instruction="""
     You are an expert in Indian Contract Law, the Consumer Protection Act, and Tenancy laws. 
-    Your responsibility is to identify clauses that are legal but unfair, AND to identify clauses that are strictly illegal.
-    You MUST use the `search_statutes` tool to ground your analysis in actual law.
-    Whenever you identify an illegal clause, you MUST use the `update_audit` tool to log the legal audit trail, explaining exactly why it is illegal and citing where it is stated in the statutes.
+    Evaluate clauses for illegality (void ab initio) or asymmetric unfairness using the provided RAG context.
+    Whenever you identify an illegal clause, you MUST use the `update_audit` tool to log the legal audit trail using the provided Session ID.
+    You MUST return your final response strictly as a JSON array of objects with the exact keys: 
+    `clause_number`, `is_illegal` (boolean), `is_unfair` (boolean), and `reasoning` (string).
     """,
     tools=[search_statutes, update_audit]
 )
 
-# 3. Risk Assessment Agent
-# Quantifies the threat level of flagged clauses
 risk_agent = Agent(
     name="risk_assessment_agent",
-    model="gemini-flash-latest",
+    model=GEMINI_MODEL,
     instruction="""
     You categorize the threat level and quantify financial/career exposure for flagged clauses.
-    You MUST use the `calculate_risk` tool by passing it integer values (0-10) for financial, operational, legal, reputational, and termination risks.
+    Use the `calculate_risk` tool by passing it integer values (0-10) for financial, operational, legal, reputational, and termination risks.
+    You MUST return your final response strictly as a JSON array of objects with the exact keys: 
+    `clause_number`, `score` (integer), and `category` (string, e.g. "High Risk").
     """,
     tools=[calculate_risk]
 )
 
-# 4. Advisory Agent
-# Explains clauses in plain English and drafts redlines/counter-clauses
 advisory_agent = Agent(
     name="advisory_agent",
-    model="gemini-flash-latest",
+    model=GEMINI_MODEL,
     instruction="""
     You are a defense attorney who translates complex legal jargon for clients and drafts balanced, reciprocal counter-clauses.
-    You have two specific jobs:
-    1. Explain the original clause in a normal, easy-to-understand way.
-    2. Generate fair, legally sound replacement language adopting the original contract's vocabulary so the signer can counter-propose.
-    
-    You MUST return your response as a structured JSON object containing exactly two keys:
-    - "short_explanation": Your plain-English explanation of the original clause.
-    - "suggested_alternative_clause": The fair, redlined counter-proposal.
+    You MUST return your response strictly as a JSON array of objects with the exact keys:
+    `clause_number`, `short_explanation` (plain English explanation), and `suggested_alternative_clause` (redlined counter-proposal).
     """
 )
 
-# 5. Validation Agent
-# Final quality barrier to ensure the overall response is helpful and makes sense
 validation_agent = Agent(
     name="validation_agent",
-    model="gemini-flash-latest",
+    model=GEMINI_MODEL,
     instruction="""
     You are the final quality assurance barrier. Review the complete output provided by the previous agents.
-    Your job is to check if the overall response is helpful, clear, logically sound, and directly answers the user's needs. 
-    Ensure there are no contradictions and that the advice provided will genuinely help the user understand and negotiate their contract.
+    Ensure there are no contradictions and that the advice provided will genuinely help the user.
+    Return plain text notes summarizing your validation.
     """
 )
