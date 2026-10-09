@@ -61,8 +61,18 @@ main {
 }
 
 .view { display: none; }
-.view.active { display: flex; flex-direction: column; flex: 1; }
+.view.active { 
+    display: flex; 
+    flex-direction: column; 
+    flex: 1; 
+    animation: fadeIn 0.4s ease-out forwards;
+}
 .hidden { display: none !important; }
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
 
 /* Typography */
 .hero-title {
@@ -156,6 +166,32 @@ textarea::placeholder { color: #4b5563; }
     .theme-toggle { cursor: pointer; color: var(--text-muted); transition: color 0.2s; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; }
     .theme-toggle:hover { color: var(--text-main); background: rgba(128,128,128,0.1); }
     
+    /* Example Agreements */
+    .example-agreements {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        margin-top: 1.5rem;
+    }
+    .example-btn {
+        background: transparent;
+        border: 1px solid var(--border-color);
+        color: var(--text-muted);
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .example-btn:hover {
+        border-color: var(--text-muted);
+        color: var(--text-main);
+        background: rgba(128, 128, 128, 0.05);
+    }
+    
     /* Loading Pipeline */
     .loading-content {
         margin: auto;
@@ -212,11 +248,11 @@ textarea::placeholder { color: #4b5563; }
 
     /* Animations */
     @keyframes slideUp {
-        from { opacity: 0; transform: translateY(20px); }
+        from { opacity: 0; transform: translateY(30px); }
         to { opacity: 1; transform: translateY(0); }
     }
     .feed-card, .clause-row {
-        animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+        animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) backwards;
     }
 
 /* Results Layout */
