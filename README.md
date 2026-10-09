@@ -18,14 +18,45 @@ Synapse is an automated, multi-agent legal review pipeline. It ingests contracts
 The backend is built with FastAPI. When a document is uploaded or pasted, it is converted to Markdown using a document parser. An orchestrator script then batches the clauses and routes them through Google ADK agents powered by Gemini. These agents execute custom Python tools, including a RAG retriever for legal context and a SQLite database logger for the audit trail. The frontend polls a status endpoint to visualize the agent pipeline in real-time, subsequently rendering the structured JSON results into an interactive dashboard.
 
 ## Setup Instructions
-1. Clone the repository to your local machine.
-2. Ensure you have Python installed along with the `uv` package manager.
-3. Install the required dependencies defined in the project configuration.
-4. Create a `.env` file in the root directory.
-5. Add your API credentials to the `.env` file (e.g., `GEMINI_API_KEY="your_api_key_here"`).
+1. Clone the repository to your local machine and navigate into the project directory:
+   ```bash
+   git clone <repository-url>
+   cd Synapse
+   ```
+2. Ensure you have Python (>=3.13) installed. Install the `uv` package manager if you haven't already:
+   
+   **For macOS and Linux:**
+   ```bash
+   curl -LsSf https://astral.sh/uv/install.sh | sh
+   
+   # Or using Homebrew on macOS:
+   brew install uv
+   ```
+   **For Windows (PowerShell):**
+   ```powershell
+   powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+   ```
+3. Install the required dependencies using `uv`:
+   ```bash
+   uv sync
+   ```
+4. Copy the environment variables example file:
+   ```bash
+   cp .env.example .env
+   ```
+5. Open the `.env` file and add your `GOOGLE_API_KEY` (get one from Google AI Studio).
+6. **Initialize the RAG Database:** Before running the app, you must embed the legal statutes in the knowledge base. Run the ingestion script:
+   ```bash
+   uv run python src/rag_engine/ingest.py
+   ```
+   *(This will download a local HuggingFace embedding model and process the PDFs in `src/rag_engine/knowledge-base` into a local ChromaDB vector store).*
 
 ## Usage Instructions
-1. Start the application server by executing `uv run python src/app/main.py` in your terminal.
+1. Start the FastAPI backend server using `uv`:
+   ```bash
+   uv run python src/app/main.py
+   ```
+   *(This command automatically uses the virtual environment created during setup).*
 2. Open a web browser and navigate to `http://localhost:8000`.
 3. Use the interface to either upload a contract file or paste the raw text directly.
 4. Click the analyze button and watch the real-time agent pipeline visualization.
