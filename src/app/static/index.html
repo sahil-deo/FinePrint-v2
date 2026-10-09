@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Synapse - Know what you're signing.</title>
     <link rel="stylesheet" href="/static/style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 <body>
     <!-- Header / Nav -->
@@ -79,16 +80,20 @@
         <section id="resultsView" class="view hidden">
             <div class="results-header">
                 <div class="results-title-group">
-                    <h1 class="results-title"><span id="riskLevelTitle">Risky.</span> <span id="issueCount">0</span> issues found.</h1>
+                    <h1 class="results-title" id="resultsTitleText">Risky. <span id="issueCount">0</span> issues found.</h1>
                     <div class="risk-filters">
                         <span class="filter-pill"><span class="dot red"></span> High ( <span id="countHigh">0</span> )</span>
                         <span class="filter-pill"><span class="dot orange"></span> Medium ( <span id="countMedium">0</span> )</span>
                         <span class="filter-pill"><span class="dot blue"></span> Low ( <span id="countLow">0</span> )</span>
                     </div>
                 </div>
-                <div style="display: flex; gap: 1rem; align-items: center;">
-                    <div class="score-display">
-                        <span id="riskScore">0</span>
+                <div style="display: flex; gap: 1.5rem; align-items: center;">
+                    <div class="score-display" style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px;">
+                        <div style="font-size: 1.2rem; font-weight: bold; color: var(--text-main);"><span id="riskScore">0</span> / 100 risk</div>
+                        <div style="width: 100px; height: 6px; background: rgba(128,128,128,0.2); border-radius: 3px; overflow: hidden;">
+                            <div id="riskScoreBar" style="height: 100%; width: 0%; background: var(--dot-blue); transition: width 0.5s, background 0.5s;"></div>
+                        </div>
+                        <div style="font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">Higher = riskier</div>
                     </div>
                     <button class="btn-primary" id="downloadReportBtn" style="height: fit-content;">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>

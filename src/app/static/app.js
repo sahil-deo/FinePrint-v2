@@ -28,7 +28,16 @@ let pollInterval;
 
 function updatePipelineUI(currentStep, message) {
     const statusEl = document.getElementById('loadingStatus');
-    if (statusEl) statusEl.textContent = message || "Processing...";
+    const stepMessages = {
+        1: "Parsing document and extracting text...",
+        2: "Identifying and segmenting legal clauses...",
+        3: "Retrieving relevant statutes via RAG...",
+        4: "Evaluating clauses for illegality...",
+        5: "Quantifying legal and operational risks...",
+        6: "Drafting redlines and counter-clauses...",
+        7: "Reviewing final analysis for contradictions..."
+    };
+    if (statusEl) statusEl.textContent = stepMessages[currentStep] || message || "Processing...";
     
     for(let i=1; i<=7; i++) {
         const node = document.getElementById(`node-${i}`);
@@ -343,15 +352,21 @@ function renderResults(data) {
             }
 
             // 2. Render Right Pane (Findings Feed)
-            // Skip low risk clauses from the feed to keep it uncluttered like the screenshot
             if (riskClass !== 'risk-low') {
                 const explanation = clause.advisory?.short_explanation || clause.legality_analysis?.reasoning || "Issue detected.";
                 const alternative = clause.advisory?.suggested_alternative_clause || "";
                 
                 let auditHtml = '';
                 if (auditByClause[cNum] && auditByClause[cNum].length > 0) {
-                    const logs = auditByClause[cNum].map(l => `${l.statute_name} Section ${l.section_number}`).join(', ');
-                    auditHtml = `<div class="audit-box">Citation: ${logs}</div>`;
+                    const logs = auditByClause[cNum].map(l => {
+                        let sec = (l.section_number || '').replace(/Section\s+/ig, '').trim();
+                        let isImplicit = sec.toLowerCase().includes('(implicitly)');
+                        sec = sec.replace(/\(implicitly\)/ig, '').trim();
+                        let text = `${l.statute_name}, Section ${sec}`;
+                        if (isImplicit) text += ' (Related provision)';
+                        return text;
+                    }).join('<br/>');
+                    auditHtml = `<div class="audit-box"><strong>Citation:</strong><br/>${logs}</div>`;
                 }
 
                 const altHtml = alternative && alternative !== 'N/A' ? `<div class="feed-card-alternative">Suggested: "${alternative}"</div>` : '';
@@ -374,13 +389,15 @@ function renderResults(data) {
                     const target = document.getElementById(`doc-clause-${cNum}`);
                     if (target) {
                         // Remove previous highlights
-                        document.querySelectorAll('.clause-text.highlight-underline').forEach(el => {
-                            el.classList.remove('highlight-underline');
+                        document.querySelectorAll('.clause-text').forEach(el => {
+                            el.classList.remove('clause-highlight-high', 'clause-highlight-medium');
                         });
                         
                         target.scrollIntoView({ behavior: 'smooth', block: 'center' });
                         const textDiv = target.querySelector('.clause-text');
-                        textDiv.classList.add('highlight-underline');
+                        
+                        const highlightClass = riskClass === 'risk-high' || riskClass === 'risk-illegal' ? 'clause-highlight-high' : 'clause-highlight-medium';
+                        textDiv.classList.add(highlightClass);
                     }
                 });
 
@@ -389,18 +406,42 @@ function renderResults(data) {
         });
     }
 
-    // Update Headers
-    const totalIssues = highCount + medCount;
-    document.getElementById('issueCount').textContent = totalIssues;
-    document.getElementById('riskLevelTitle').textContent = totalIssues > 0 ? "Risky." : "Clear.";
-    
+        // Add note about hidden low-risk items
+        if (lowCount > 0) {
+            const hiddenNote = document.createElement('div');
+            hiddenNote.style.textAlign = 'center';
+            hiddenNote.style.color = 'var(--text-muted)';
+            hiddenNote.style.fontSize = '0.85rem';
+            hiddenNote.style.padding = '1rem';
+            hiddenNote.textContent = `${lowCount} low-risk clauses are hidden by default.`;
+            feedContainer.appendChild(hiddenNote);
+        }
+
     document.getElementById('countHigh').textContent = highCount;
     document.getElementById('countMedium').textContent = medCount;
     document.getElementById('countLow').textContent = lowCount;
     
-    // Calculate dummy score out of 100
-    const score = Math.max(0, 100 - (highCount * 15) - (medCount * 5));
-    document.getElementById('riskScore').textContent = score;
+    // Phase 1 Task 1: Fix Pluralization & Task 2: Fix Score logic
+    const totalIssues = highCount + medCount;
+    const titleEl = document.getElementById('resultsTitleText');
+    if (totalIssues === 0) {
+        titleEl.innerHTML = `All clear. <span id="issueCount">0</span> issues found.`;
+    } else if (totalIssues === 1) {
+        titleEl.innerHTML = `Risky. <span id="issueCount">1</span> issue found.`;
+    } else {
+        titleEl.innerHTML = `Risky. <span id="issueCount">${totalIssues}</span> issues found.`;
+    }
+    
+    // Calculate 0-100 score where higher is worse
+    const penalty = Math.min(100, (highCount * 25) + (medCount * 10)); 
+    document.getElementById('riskScore').textContent = penalty;
+    const bar = document.getElementById('riskScoreBar');
+    if (bar) {
+        bar.style.width = `${penalty}%`;
+        if (penalty > 60) bar.style.background = 'var(--dot-red)';
+        else if (penalty > 20) bar.style.background = 'var(--dot-orange)';
+        else bar.style.background = 'var(--dot-green)';
+    }
 }
 
 // Download Report Logic
@@ -409,40 +450,81 @@ document.getElementById('downloadReportBtn').addEventListener('click', () => {
     const report = currentReportData.report;
     const auditLogs = currentReportData.audit_logs;
     
-    let content = "# Contract Analysis Report\n\n";
+    const container = document.createElement('div');
+    container.style.padding = '40px';
+    container.style.fontFamily = '"Helvetica Neue", Helvetica, Arial, sans-serif';
+    container.style.color = '#111';
+    container.style.lineHeight = '1.6';
+    
+    let htmlContent = `
+        <div style="text-align: center; margin-bottom: 40px;">
+            <h1 style="color: #0f172a; margin-bottom: 5px;">Contract Analysis Report</h1>
+            <p style="color: #64748b; font-size: 14px;">Generated by FinePrint</p>
+        </div>
+    `;
     
     if (report.clauses) {
         report.clauses.forEach(c => {
-            if (c.risk_assessment?.category === "Low Risk") return; // Only show flagged
+            const isLowRisk = c.risk_assessment?.category === "Low Risk";
+            const riskColor = c.risk_assessment?.category === "High Risk" ? "#ef4444" : (isLowRisk ? "#3b82f6" : "#f59e0b");
             
-            content += `## Clause ${c.clause_number}: ${c.risk_assessment?.category || 'Flagged'}\n\n`;
-            content += `**Original Text:**\n> ${c.original_text.replace(/\n/g, '\n> ')}\n\n`;
+            htmlContent += `
+                <div style="margin-bottom: 30px; border-bottom: 1px solid #e2e8f0; padding-bottom: 20px; page-break-inside: avoid;">
+                    <h3 style="color: ${riskColor}; margin-top: 0; margin-bottom: 10px;">
+                        Clause ${c.clause_number}: ${c.risk_assessment?.category || 'Flagged'}
+                    </h3>
+                    <div style="background: #f8fafc; padding: 10px 15px; border-left: 4px solid #cbd5e1; margin-bottom: 15px; font-family: Georgia, serif; font-size: 14px;">
+                        ${c.original_text.replace(/\n/g, '<br>')}
+                    </div>
+            `;
             
-            const explanation = c.advisory?.short_explanation || c.legality_analysis?.reasoning || "Issue detected.";
-            content += `**Issue:** ${explanation}\n\n`;
-            
-            if (c.advisory?.suggested_alternative_clause && c.advisory.suggested_alternative_clause !== "N/A") {
-                content += `**Suggested Alternative:**\n${c.advisory.suggested_alternative_clause}\n\n`;
+            if (!isLowRisk) {
+                const explanation = c.advisory?.short_explanation || c.legality_analysis?.reasoning || "Issue detected.";
+                htmlContent += `<p style="margin: 0 0 10px 0;"><strong>Issue:</strong> ${explanation}</p>`;
+                
+                if (c.advisory?.suggested_alternative_clause && c.advisory.suggested_alternative_clause !== "N/A") {
+                    htmlContent += `
+                        <div style="background: #ecfdf5; padding: 10px; border-radius: 4px; border: 1px solid #a7f3d0; margin-bottom: 15px;">
+                            <strong style="color: #065f46;">Suggested Alternative:</strong><br>
+                            <span style="color: #047857; font-style: italic;">${c.advisory.suggested_alternative_clause}</span>
+                        </div>
+                    `;
+                }
+                
+                const logs = auditLogs.filter(l => String(l.clause_number) === String(c.clause_number));
+                if (logs.length > 0) {
+                    htmlContent += `<p style="margin: 0 0 5px 0;"><strong>Legal Citations:</strong></p><ul style="margin: 0 0 10px 0; padding-left: 20px; font-size: 13px; color: #475569;">`;
+                    logs.forEach(l => {
+                        let sec = (l.section_number || '').replace(/Section\s+/ig, '').trim();
+                        let isImplicit = sec.toLowerCase().includes('(implicitly)');
+                        sec = sec.replace(/\(implicitly\)/ig, '').trim();
+                        let text = `${l.statute_name}, Section ${sec}`;
+                        if (isImplicit) text += ' (Related provision)';
+                        htmlContent += `<li>${text}: ${l.violation_reason}</li>`;
+                    });
+                    htmlContent += `</ul>`;
+                }
+            } else {
+                htmlContent += `<p style="margin: 0 0 10px 0; color: #64748b;"><em>No significant issues identified.</em></p>`;
             }
             
-            const logs = auditLogs.filter(l => String(l.clause_number) === String(c.clause_number));
-            if (logs.length > 0) {
-                content += `**Legal Citations:**\n`;
-                logs.forEach(l => {
-                    content += `- ${l.statute_name}, Section ${l.section_number}: ${l.violation_reason}\n`;
-                });
-                content += `\n`;
-            }
-            
-            content += `---\n\n`;
+            htmlContent += `</div>`;
         });
     }
     
-    const blob = new Blob([content], { type: 'text/markdown' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'Synapse_Analysis_Report.md';
-    a.click();
-    URL.revokeObjectURL(url);
+    container.innerHTML = htmlContent;
+    
+    const opt = {
+        margin:       0.5,
+        filename:     'FinePrint_Analysis_Report.pdf',
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2 },
+        jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+    };
+    
+    if (window.html2pdf) {
+        html2pdf().set(opt).from(container).save();
+    } else {
+        alert("PDF library is still loading, please try again in a moment.");
+    }
 });

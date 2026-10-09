@@ -347,13 +347,17 @@ textarea::placeholder { color: #4b5563; }
     line-height: 1.7;
     color: var(--text-main);
     white-space: pre-wrap;
-    transition: color 0.3s;
+    transition: all 0.3s;
+    padding: 2px 8px;
+    border-left: 3px solid transparent;
 }
-.clause-text.highlight-underline {
-    text-decoration: underline;
-    text-decoration-color: var(--dot-blue);
-    text-decoration-thickness: 3px;
-    text-underline-offset: 4px;
+.clause-text.clause-highlight-high {
+    border-left-color: var(--dot-red);
+    background: rgba(239, 68, 68, 0.08);
+}
+.clause-text.clause-highlight-medium {
+    border-left-color: var(--dot-orange);
+    background: rgba(245, 158, 11, 0.08);
 }
 
 /* Right Pane - Findings Feed */
