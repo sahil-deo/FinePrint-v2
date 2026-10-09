@@ -11,6 +11,7 @@ dependencies = [
     "fastapi",
     "uvicorn",
     "python-multipart",
+    "python-dotenv",
     "llama-index-core>=0.14.25",
     "llama-index-embeddings-huggingface>=0.8.0",
     "llama-index-readers-file>=0.7.0",

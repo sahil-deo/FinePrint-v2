@@ -4145,6 +4145,7 @@ dependencies = [
     { name = "llama-index-readers-file" },
     { name = "llama-index-vector-stores-chroma" },
     { name = "pydantic" },
+    { name = "python-dotenv" },
     { name = "python-multipart" },
     { name = "uvicorn" },
 ]
@@ -4160,6 +4161,7 @@ requires-dist = [
     { name = "llama-index-readers-file", specifier = ">=0.7.0" },
     { name = "llama-index-vector-stores-chroma", specifier = ">=0.6.0" },
     { name = "pydantic", specifier = ">=2.14.0" },
+    { name = "python-dotenv" },
     { name = "python-multipart" },
     { name = "uvicorn" },
 ]

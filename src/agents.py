@@ -1,4 +1,4 @@
-from adk import Agent
+from google.adk import Agent
 
 # Import our custom standard Python tools
 from tools.rag import search_statutes
@@ -8,8 +8,9 @@ from tools.audit import update_audit
 # 1. Clause Identification Agent
 # Breaks the raw markdown document into atomic clause objects
 clause_id_agent = Agent(
-    name="Clause Identification Agent",
-    instructions="""
+    name="clause_identification_agent",
+    model="gemini-flash-latest",
+    instruction="""
     You are a contract parsing expert. 
     Receive raw markdown contract text and break it down into atomic, numbered clause objects.
     Preserve the parent headings for context. Output strictly in JSON format.
@@ -19,8 +20,9 @@ clause_id_agent = Agent(
 # 2. Invalid Clause Agent
 # Checks clauses against Indian statutory law and fairness heuristics
 invalid_clause_agent = Agent(
-    name="Invalid Clause Agent",
-    instructions="""
+    name="invalid_clause_agent",
+    model="gemini-flash-latest",
+    instruction="""
     You are an expert in Indian Contract Law, the Consumer Protection Act, and Tenancy laws. 
     Your responsibility is to identify clauses that are legal but unfair, AND to identify clauses that are strictly illegal.
     You MUST use the `search_statutes` tool to ground your analysis in actual law.
@@ -32,8 +34,9 @@ invalid_clause_agent = Agent(
 # 3. Risk Assessment Agent
 # Quantifies the threat level of flagged clauses
 risk_agent = Agent(
-    name="Risk Assessment Agent",
-    instructions="""
+    name="risk_assessment_agent",
+    model="gemini-flash-latest",
+    instruction="""
     You categorize the threat level and quantify financial/career exposure for flagged clauses.
     You MUST use the `calculate_risk` tool by passing it integer values (0-10) for financial, operational, legal, reputational, and termination risks.
     """,
@@ -43,8 +46,9 @@ risk_agent = Agent(
 # 4. Advisory Agent
 # Explains clauses in plain English and drafts redlines/counter-clauses
 advisory_agent = Agent(
-    name="Advisory Agent",
-    instructions="""
+    name="advisory_agent",
+    model="gemini-flash-latest",
+    instruction="""
     You are a defense attorney who translates complex legal jargon for clients and drafts balanced, reciprocal counter-clauses.
     You have two specific jobs:
     1. Explain the original clause in a normal, easy-to-understand way.
@@ -59,8 +63,9 @@ advisory_agent = Agent(
 # 5. Validation Agent
 # Final quality barrier to ensure the overall response is helpful and makes sense
 validation_agent = Agent(
-    name="Validation Agent",
-    instructions="""
+    name="validation_agent",
+    model="gemini-flash-latest",
+    instruction="""
     You are the final quality assurance barrier. Review the complete output provided by the previous agents.
     Your job is to check if the overall response is helpful, clear, logically sound, and directly answers the user's needs. 
     Ensure there are no contradictions and that the advice provided will genuinely help the user understand and negotiate their contract.
