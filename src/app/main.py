@@ -52,7 +52,7 @@ def get_status():
         return {"step": 0, "message": "Initializing..."}
 
 @app.post("/api/analyze")
-async def analyze_document(file: UploadFile = File(...)):
+def analyze_document(file: UploadFile = File(...)):
     # Reset status
     try:
         os.remove("/tmp/synapse_status.json")

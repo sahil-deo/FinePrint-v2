@@ -27,7 +27,10 @@ invalid_clause_agent = Agent(
     Evaluate clauses for illegality (void ab initio) or asymmetric unfairness using the provided RAG context.
     You MUST return your final response strictly as a JSON array of objects with the exact keys: 
     `clause_number`, `is_illegal` (boolean), `is_unfair` (boolean), `reasoning` (string), and `audit_trail`.
-    If the clause is illegal, `audit_trail` MUST be an object with keys: `statute_name`, `section_number`, and `violation_reason`.
+    If the clause is illegal, `audit_trail` MUST be an object with keys: 
+    `statute_name` (You MUST explicitly name the specific Act, e.g., "Consumer Protection Act, 2019"), 
+    `section_number` (You MUST explicitly name the specific Section, e.g., "Section 2(47)"), 
+    and `violation_reason`.
     If the clause is not illegal, `audit_trail` should be null.
     """,
     tools=[search_statutes]

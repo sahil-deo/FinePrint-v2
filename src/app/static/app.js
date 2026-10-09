@@ -175,8 +175,8 @@ function renderResults(data) {
                 
                 let auditHtml = '';
                 if (auditByClause[cNum] && auditByClause[cNum].length > 0) {
-                    const logs = auditByClause[cNum].map(l => `${l.statute_name} §${l.section_number}`).join(', ');
-                    auditHtml = `<div class="audit-box">⚖️ Cited: ${logs}</div>`;
+                    const logs = auditByClause[cNum].map(l => `${l.statute_name} Section ${l.section_number}`).join(', ');
+                    auditHtml = `<div class="audit-box">Citation: ${logs}</div>`;
                 }
 
                 const altHtml = alternative && alternative !== 'N/A' ? `<div class="feed-card-alternative">Suggested: "${alternative}"</div>` : '';
@@ -185,25 +185,25 @@ function renderResults(data) {
                 card.className = `feed-card ${riskClass}`;
                 card.innerHTML = `
                     <h3 class="feed-card-title">${riskCategory}</h3>
-                    <p class="feed-card-subtitle">Found by Risk Analyst</p>
+                    <p class="feed-card-subtitle">Found by Risk Analyst, Clause ${cNum}</p>
                     <div class="feed-card-text">${explanation}</div>
                     ${altHtml}
                     ${auditHtml}
-                    <div class="badge-confirmed">✓ Confirmed</div>
+                    <div class="badge-confirmed">Confirmed</div>
                 `;
                 
                 // Click to highlight document
                 card.addEventListener('click', () => {
                     const target = document.getElementById(`doc-clause-${cNum}`);
                     if (target) {
+                        // Remove previous highlights
+                        document.querySelectorAll('.clause-text.highlight-underline').forEach(el => {
+                            el.classList.remove('highlight-underline');
+                        });
+                        
                         target.scrollIntoView({ behavior: 'smooth', block: 'center' });
                         const textDiv = target.querySelector('.clause-text');
-                        textDiv.style.color = '#ffffff';
-                        textDiv.style.fontWeight = 'bold';
-                        setTimeout(() => {
-                            textDiv.style.color = '#e5e7eb';
-                            textDiv.style.fontWeight = 'normal';
-                        }, 1500);
+                        textDiv.classList.add('highlight-underline');
                     }
                 });
 

@@ -309,9 +309,15 @@ textarea::placeholder { color: #4b5563; }
     font-family: "Georgia", serif;
     font-size: 1.15rem;
     line-height: 1.7;
-    color: #e5e7eb;
+    color: var(--text-main);
     white-space: pre-wrap;
     transition: color 0.3s;
+}
+.clause-text.highlight-underline {
+    text-decoration: underline;
+    text-decoration-color: var(--dot-blue);
+    text-decoration-thickness: 3px;
+    text-underline-offset: 4px;
 }
 
 /* Right Pane - Findings Feed */
@@ -360,7 +366,7 @@ textarea::placeholder { color: #4b5563; }
 }
 .feed-card.risk-high { border-left-color: var(--dot-red); }
 .feed-card.risk-medium { border-left-color: var(--dot-orange); }
-.feed-card.risk-low { border-left-color: var(--dot-blue); display: none; /* Hide low risk by default like screenshot */ }
+.feed-card.risk-low { border-left-color: var(--dot-blue); display: none; }
 .feed-card.risk-illegal { 
     border-left-color: var(--dot-red); 
     background: rgba(239, 68, 68, 0.05);
@@ -380,7 +386,7 @@ textarea::placeholder { color: #4b5563; }
 .feed-card-text {
     font-size: 0.95rem;
     line-height: 1.5;
-    color: #d1d5db;
+    color: var(--text-main);
     margin-bottom: 1rem;
 }
 .feed-card-alternative {
@@ -396,8 +402,8 @@ textarea::placeholder { color: #4b5563; }
 .audit-box {
     font-size: 0.8rem;
     font-family: monospace;
-    color: #9ca3af;
-    background: #000;
+    color: var(--text-muted);
+    background: rgba(128, 128, 128, 0.1);
     padding: 0.5rem;
     border-radius: 4px;
     margin-bottom: 1rem;
