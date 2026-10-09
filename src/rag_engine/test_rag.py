@@ -18,7 +18,7 @@ def main():
     Settings.llm = None
 
     print("Loading ChromaDB and Docstore...")
-    db = chromadb.PersistentClient(path="./src/chroma_db")
+    db = chromadb.PersistentClient(path="./src/rag_engine/chroma_db")
     chroma_collection = db.get_or_create_collection("statutes")
     vector_store = ChromaVectorStore(chroma_collection=chroma_collection)
     
@@ -26,10 +26,10 @@ def main():
     try:
         storage_context = StorageContext.from_defaults(
             vector_store=vector_store,
-            persist_dir="./src/storage"
+            persist_dir="./src/rag_engine/storage"
         )
     except FileNotFoundError:
-        print("Error: Could not find the storage directory. Have you run 'python src/ingest.py' yet?")
+        print("Error: Could not find the storage directory. Have you run 'python src/rag_engine/ingest.py' yet?")
         return
 
     # Load index from storage

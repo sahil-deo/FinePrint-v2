@@ -7,9 +7,9 @@ from llama_index.core import Settings
 import chromadb
 
 def main():
-    print("Loading PDFs from src/knowledge-base...")
+    print("Loading PDFs from src/rag_engine/knowledge-base...")
     # Load all documents from the directory
-    documents = SimpleDirectoryReader("src/knowledge-base").load_data()
+    documents = SimpleDirectoryReader("src/rag_engine/knowledge-base").load_data()
     print(f"Loaded {len(documents)} document pages.")
 
     print("Configuring local embedding model (BAAI/bge-small-en-v1.5)...")
@@ -33,8 +33,8 @@ def main():
 
     print("Initializing ChromaDB...")
     # Setup ChromaDB client to save locally
-    os.makedirs("./src/chroma_db", exist_ok=True)
-    db = chromadb.PersistentClient(path="./src/chroma_db")
+    os.makedirs("./src/rag_engine/chroma_db", exist_ok=True)
+    db = chromadb.PersistentClient(path="./src/rag_engine/chroma_db")
     chroma_collection = db.get_or_create_collection("statutes")
     vector_store = ChromaVectorStore(chroma_collection=chroma_collection)
     
@@ -52,9 +52,9 @@ def main():
         show_progress=True
     )
 
-    print("Persisting full docstore to ./src/storage...")
+    print("Persisting full docstore to ./src/rag_engine/storage...")
     # We persist the docstore locally so test_rag.py can access the parent chunks
-    storage_context.persist(persist_dir="./src/storage")
+    storage_context.persist(persist_dir="./src/rag_engine/storage")
 
     print("Ingestion complete! Vector database is ready.")
 
