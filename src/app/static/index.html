@@ -3,18 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Synapse - Know what you're signing.</title>
+    <title>FinePrint - Know what you're signing.</title>
     <link rel="stylesheet" href="/static/style.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 <body>
-    <!-- Header / Nav -->
-    <header class="top-nav">
+    <header>
         <div class="logo">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
             FinePrint
         </div>
-        <div class="theme-toggle">
+        <div class="theme-toggle" id="themeToggle" tabindex="0" role="button" aria-label="Toggle theme">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
         </div>
     </header>
@@ -23,20 +22,33 @@
         <!-- LANDING VIEW -->
         <section id="landingView" class="view active">
             <div class="hero">
-                <h1 class="hero-title">Know what you're<br>signing.</h1>
-                <p class="hero-subtitle">A team of AI agents reviews your agreement, finds hidden risks,<br>and tells you exactly what to negotiate.</p>
+                <h1 class="hero-title">Review contracts instantly.</h1>
+                <p class="hero-subtitle">Identify hidden liabilities, asymmetric obligations, and illegal clauses before you sign.</p>
             </div>
             
             <div class="editor-container">
-                <textarea id="textInput" placeholder="Paste your agreement text here..."></textarea>
+                <div class="drop-zone" id="dropZone">
+                    <div id="dropZoneContent">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                        <p>Drag and drop a PDF or TXT file here, or click to upload</p>
+                    </div>
+                    <div id="fileChip" class="file-chip hidden">
+                        <span id="fileName">document.pdf</span>
+                        <span id="fileSize" class="text-muted">1.2 MB</span>
+                        <button id="removeFileBtn" aria-label="Remove file">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                        </button>
+                    </div>
+                    <input type="file" id="fileInput" accept=".txt,.md,.pdf,.png,.jpg,.jpeg" class="hidden">
+                </div>
+                
+                <textarea id="textInput" placeholder="...or paste your agreement text here directly." aria-label="Contract text input"></textarea>
                 
                 <div class="editor-footer">
-                    <button class="btn-icon" id="uploadBtn">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-                        <span id="uploadLabel">Upload file</span>
-                    </button>
-                    <input type="file" id="fileInput" accept=".txt,.md,.pdf,.png,.jpg" hidden>
-                    
+                    <p class="disclaimer">
+                        Disclaimer: This tool provides AI-generated analysis and does not constitute legal advice.<br>
+                        Documents are processed temporarily in memory and are not permanently stored.
+                    </p>
                     <button class="btn-primary" id="analyzeBtn">Analyze <span class="kbd">⌘↵</span></button>
                 </div>
             </div>
@@ -55,24 +67,31 @@
 
         <!-- LOADING VIEW -->
         <section id="loadingView" class="view hidden">
-            <div class="loading-content">
-                <h2 class="hero-title" style="font-size: 2rem;">Agents are reviewing...</h2>
-                <div class="pipeline-graph">
-                    <div class="node" id="node-1"><div class="node-icon">1</div><div class="node-label">Parser</div></div>
-                    <div class="connector"></div>
-                    <div class="node" id="node-2"><div class="node-icon">2</div><div class="node-label">Clause ID</div></div>
-                    <div class="connector"></div>
-                    <div class="node" id="node-3"><div class="node-icon">3</div><div class="node-label">RAG</div></div>
-                    <div class="connector"></div>
-                    <div class="node" id="node-4"><div class="node-icon">4</div><div class="node-label">Legality</div></div>
-                    <div class="connector"></div>
-                    <div class="node" id="node-5"><div class="node-icon">5</div><div class="node-label">Risk</div></div>
-                    <div class="connector"></div>
-                    <div class="node" id="node-6"><div class="node-icon">6</div><div class="node-label">Advisory</div></div>
-                    <div class="connector"></div>
-                    <div class="node" id="node-7"><div class="node-icon">7</div><div class="node-label">Validator</div></div>
+            <div class="loading-content" aria-live="polite">
+                <div class="loading-header">
+                    <h2 class="hero-title">Analyzing your contract</h2>
+                    <div class="timer-display" id="loadingTimer">0s elapsed (Expected: ~45s)</div>
                 </div>
-                <p class="hero-subtitle" id="loadingStatus">Scanning clauses, checking statutes, and assessing risks.</p>
+                
+                <div class="pipeline-graph">
+                    <div class="node" id="node-1"><div class="node-circle">1</div><div class="node-label">Parser</div></div>
+                    <div class="connector"></div>
+                    <div class="node" id="node-2"><div class="node-circle">2</div><div class="node-label">Clause ID</div></div>
+                    <div class="connector"></div>
+                    <div class="node" id="node-3"><div class="node-circle">3</div><div class="node-label">RAG</div></div>
+                    <div class="connector"></div>
+                    <div class="node" id="node-4"><div class="node-circle">4</div><div class="node-label">Legality</div></div>
+                    <div class="connector"></div>
+                    <div class="node" id="node-5"><div class="node-circle">5</div><div class="node-label">Risk</div></div>
+                    <div class="connector"></div>
+                    <div class="node" id="node-6"><div class="node-circle">6</div><div class="node-label">Advisory</div></div>
+                    <div class="connector"></div>
+                    <div class="node" id="node-7"><div class="node-circle">7</div><div class="node-label">Validator</div></div>
+                </div>
+                
+                <div class="loading-status-text" id="loadingStatus">Initializing backend process...</div>
+                
+                <button class="btn-secondary" id="cancelBtn" style="margin-top: 2rem;">Cancel Analysis</button>
             </div>
         </section>
 
@@ -81,42 +100,37 @@
             <div class="results-header">
                 <div class="results-title-group">
                     <h1 class="results-title" id="resultsTitleText">Risky. <span id="issueCount">0</span> issues found.</h1>
-                    <div class="risk-filters">
-                        <span class="filter-pill"><span class="dot red"></span> High ( <span id="countHigh">0</span> )</span>
-                        <span class="filter-pill"><span class="dot orange"></span> Medium ( <span id="countMedium">0</span> )</span>
-                        <span class="filter-pill"><span class="dot blue"></span> Low ( <span id="countLow">0</span> )</span>
+                    <div class="risk-filters" role="group" aria-label="Filter by severity">
+                        <button class="filter-pill active" id="filterHigh" data-risk="high"><span class="dot red"></span> High ( <span id="countHigh">0</span> )</button>
+                        <button class="filter-pill active" id="filterMedium" data-risk="medium"><span class="dot orange"></span> Medium ( <span id="countMedium">0</span> )</button>
+                        <button class="filter-pill active" id="filterLow" data-risk="low"><span class="dot blue"></span> Low ( <span id="countLow">0</span> )</button>
                     </div>
                 </div>
-                <div style="display: flex; gap: 1.5rem; align-items: center;">
-                    <div class="score-display" style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px;">
-                        <div style="font-size: 1.2rem; font-weight: bold; color: var(--text-main);"><span id="riskScore">0</span> / 100 risk</div>
-                        <div style="width: 100px; height: 6px; background: rgba(128,128,128,0.2); border-radius: 3px; overflow: hidden;">
-                            <div id="riskScoreBar" style="height: 100%; width: 0%; background: var(--dot-blue); transition: width 0.5s, background 0.5s;"></div>
+                <div class="actions-group">
+                    <div class="score-display">
+                        <div class="score-text"><span id="riskScore">0</span> / 100 risk</div>
+                        <div class="score-track">
+                            <div id="riskScoreBar" class="score-bar"></div>
                         </div>
-                        <div style="font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">Higher = riskier</div>
+                        <div class="score-legend">Higher = riskier</div>
                     </div>
-                    <button class="btn-primary" id="downloadReportBtn" style="height: fit-content;">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                        Download Report
-                    </button>
+                    <div class="btn-group">
+                        <button class="btn-secondary" id="copyAllBtn">Copy All Suggestions</button>
+                        <button class="btn-secondary" id="downloadReportBtn">Download PDF</button>
+                        <button class="btn-primary" id="newAnalysisBtn">New Analysis</button>
+                    </div>
                 </div>
             </div>
 
             <div class="results-layout">
-                <!-- Left: Document -->
+                <!-- Document Pane -->
                 <div class="document-pane" id="docPane">
-                    <!-- Populated by JS -->
+                    <!-- Clauses injected here -->
                 </div>
-                
-                <!-- Right: Findings Feed -->
-                <div class="findings-pane">
-                    <div class="findings-header">
-                        <span class="feed-title">FINDINGS FEED</span>
-                        <span class="feed-status"><span class="dot green pulse"></span> Analysis complete</span>
-                    </div>
-                    <div class="feed-container" id="feedContainer">
-                        <!-- Populated by JS -->
-                    </div>
+
+                <!-- Feed Pane -->
+                <div class="findings-feed" id="feedContainer">
+                    <!-- Cards injected here -->
                 </div>
             </div>
         </section>
