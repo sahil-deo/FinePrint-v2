@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Synapse - Legal Contract Analyzer</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <header>
+        <h1>Synapse</h1>
+        <p>Agentic Legal Contract Analysis</p>
+    </header>
+    
+    <main>
+        <section class="upload-section">
+            <h2>Upload Agreement</h2>
+            <form id="uploadForm">
+                <input type="file" id="fileInput" accept=".txt,.md,.pdf,.png,.jpg" required>
+                <button type="submit">Analyze Contract</button>
+            </form>
+            <div id="loading" class="hidden">
+                <div class="spinner"></div>
+                <p>Processing via AI Agents...</p>
+            </div>
+        </section>
+
+        <section id="resultsSection" class="hidden">
+            <div class="tabs">
+                <button class="tab-btn active" data-target="analysisTab">Clause Analysis & Advice</button>
+                <button class="tab-btn" data-target="auditTab">Audit Trail</button>
+            </div>
+
+            <div id="validationNotes" class="validation-banner"></div>
+
+            <div id="analysisTab" class="tab-content active">
+                <div id="clausesContainer"></div>
+            </div>
+
+            <div id="auditTab" class="tab-content hidden">
+                <table id="auditTable">
+                    <thead>
+                        <tr>
+                            <th>Clause</th>
+                            <th>Statute</th>
+                            <th>Section</th>
+                            <th>Violation Reason</th>
+                        </tr>
+                    </thead>
+                    <tbody id="auditTableBody"></tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+    
+    <script src="/static/app.js"></script>
+</body>
+</html>
