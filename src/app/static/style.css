@@ -12,6 +12,15 @@
     --dot-green: #10b981;
 }
 
+:root.light-mode {
+    --bg-color: #f8fafc;
+    --bg-editor: #ffffff;
+    --text-main: #0f172a;
+    --text-muted: #64748b;
+    --border-color: #e2e8f0;
+    --accent: #0f172a;
+}
+
 * { box-sizing: border-box; }
 
 body {
@@ -122,60 +131,93 @@ textarea::placeholder { color: #4b5563; }
 }
 .btn-icon:hover { color: var(--text-main); }
 
-.lang-toggles {
-    display: flex;
-    background: rgba(255,255,255,0.05);
-    border-radius: 6px;
-    padding: 2px;
-}
-.lang-toggles span {
-    padding: 4px 10px;
-    font-size: 0.8rem;
-    color: var(--text-muted);
-    cursor: pointer;
-    border-radius: 4px;
-}
-.lang-toggles span.active {
-    background: rgba(255,255,255,0.1);
-    color: var(--text-main);
-}
+    .btn-primary {
+        background: var(--accent);
+        color: var(--bg-color);
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        font-weight: 500;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    .btn-primary:hover { background: var(--text-muted); color: #fff; }
+    .kbd {
+        font-family: monospace;
+        font-size: 0.7rem;
+        background: rgba(128,128,128,0.2);
+        padding: 2px 4px;
+        border-radius: 3px;
+        margin-left: 4px;
+    }
 
-.btn-primary {
-    background: var(--accent);
-    color: #000;
-    border: none;
-    padding: 0.5rem 1rem;
-    border-radius: 6px;
-    font-weight: 500;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-.btn-primary:hover { background: #e5e7eb; }
-.kbd {
-    font-family: monospace;
-    font-size: 0.7rem;
-    background: rgba(0,0,0,0.1);
-    padding: 2px 4px;
-    border-radius: 3px;
-    margin-left: 4px;
-}
+    .theme-toggle { cursor: pointer; color: var(--text-muted); transition: color 0.2s; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; }
+    .theme-toggle:hover { color: var(--text-main); background: rgba(128,128,128,0.1); }
+    
+    /* Loading Pipeline */
+    .loading-content {
+        margin: auto;
+        text-align: center;
+        max-width: 900px;
+        width: 100%;
+    }
+    
+    .pipeline-graph {
+        display: flex;
+        align-items: flex-start;
+        justify-content: center;
+        margin: 4rem 0;
+        gap: 0;
+        width: 100%;
+    }
+    .node {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        opacity: 0.3;
+        transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        width: 80px;
+    }
+    .node.active { opacity: 1; transform: scale(1.15); }
+    .node.completed { opacity: 0.7; }
+    
+    .node-icon {
+        width: 48px; height: 48px;
+        border-radius: 50%;
+        background: var(--bg-editor);
+        border: 2px solid var(--border-color);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.25rem;
+        margin-bottom: 0.75rem;
+        z-index: 2;
+        transition: all 0.4s ease;
+    }
+    .node.active .node-icon { border-color: var(--dot-blue); box-shadow: 0 0 20px rgba(59, 130, 246, 0.6); }
+    .node.completed .node-icon { border-color: var(--dot-green); background: rgba(16, 185, 129, 0.05); }
+    .node-label { font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; text-align: center; }
+    
+    .connector {
+        flex: 1; 
+        min-width: 20px; 
+        height: 2px;
+        background: var(--border-color);
+        margin-top: 23px;
+        z-index: 1;
+        transition: background 0.5s ease;
+    }
+    .connector.active { background: var(--dot-blue); box-shadow: 0 0 10px rgba(59, 130, 246, 0.4); }
+    .connector.completed { background: var(--dot-green); }
 
-/* Loading */
-.loading-content {
-    margin: auto;
-    text-align: center;
-}
-.spinner {
-    width: 40px; height: 40px;
-    border: 3px solid rgba(255,255,255,0.1);
-    border-top-color: var(--accent);
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    margin: 0 auto;
-}
-@keyframes spin { to { transform: rotate(360deg); } }
+    /* Animations */
+    @keyframes slideUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .feed-card, .clause-row {
+        animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+    }
 
 /* Results Layout */
 #resultsView {

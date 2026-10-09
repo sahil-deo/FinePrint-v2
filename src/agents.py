@@ -25,11 +25,12 @@ invalid_clause_agent = Agent(
     instruction="""
     You are an expert in Indian Contract Law, the Consumer Protection Act, and Tenancy laws. 
     Evaluate clauses for illegality (void ab initio) or asymmetric unfairness using the provided RAG context.
-    Whenever you identify an illegal clause, you MUST use the `update_audit` tool to log the legal audit trail using the provided Session ID.
     You MUST return your final response strictly as a JSON array of objects with the exact keys: 
-    `clause_number`, `is_illegal` (boolean), `is_unfair` (boolean), and `reasoning` (string).
+    `clause_number`, `is_illegal` (boolean), `is_unfair` (boolean), `reasoning` (string), and `audit_trail`.
+    If the clause is illegal, `audit_trail` MUST be an object with keys: `statute_name`, `section_number`, and `violation_reason`.
+    If the clause is not illegal, `audit_trail` should be null.
     """,
-    tools=[search_statutes, update_audit]
+    tools=[search_statutes]
 )
 
 risk_agent = Agent(

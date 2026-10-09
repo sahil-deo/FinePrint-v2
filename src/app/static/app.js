@@ -1,3 +1,8 @@
+// Theme Toggle
+document.querySelector('.theme-toggle').addEventListener('click', () => {
+    document.documentElement.classList.toggle('light-mode');
+});
+
 // DOM Elements
 const uploadBtn = document.getElementById('uploadBtn');
 const fileInput = document.getElementById('fileInput');
@@ -15,9 +20,32 @@ uploadBtn.addEventListener('click', () => fileInput.click());
 fileInput.addEventListener('change', (e) => {
     if (e.target.files.length > 0) {
         uploadLabel.textContent = e.target.files[0].name;
-        uploadLabel.style.color = '#ffffff';
+        uploadLabel.style.color = 'var(--text-main)';
     }
 });
+
+let pollInterval;
+
+function updatePipelineUI(currentStep, message) {
+    const statusEl = document.getElementById('loadingStatus');
+    if (statusEl) statusEl.textContent = message || "Processing...";
+    
+    for(let i=1; i<=7; i++) {
+        const node = document.getElementById(`node-${i}`);
+        if (!node) continue;
+        node.classList.remove('active', 'completed');
+        if (i < currentStep) node.classList.add('completed');
+        else if (i === currentStep) node.classList.add('active');
+    }
+    
+    const connectors = document.querySelectorAll('.connector');
+    connectors.forEach((conn, idx) => {
+        const step = idx + 1;
+        conn.classList.remove('active', 'completed');
+        if (step < currentStep - 1) conn.classList.add('completed');
+        else if (step === currentStep - 1) conn.classList.add('active');
+    });
+}
 
 // Submit Logic
 analyzeBtn.addEventListener('click', async () => {
@@ -42,12 +70,26 @@ analyzeBtn.addEventListener('click', async () => {
     landingView.classList.add('hidden');
     loadingView.classList.remove('hidden');
     loadingView.classList.add('active');
+    
+    // Reset Pipeline UI
+    updatePipelineUI(0, "Initializing backend process...");
+
+    // Start Polling
+    pollInterval = setInterval(async () => {
+        try {
+            const res = await fetch('/api/status');
+            const data = await res.json();
+            updatePipelineUI(data.step, data.message);
+        } catch(e) {}
+    }, 800);
 
     try {
         const response = await fetch('/api/analyze', {
             method: 'POST',
             body: formData
         });
+        
+        clearInterval(pollInterval);
         
         if (!response.ok) {
             const errData = await response.json();
@@ -63,6 +105,7 @@ analyzeBtn.addEventListener('click', async () => {
         resultsView.classList.remove('hidden');
         resultsView.classList.add('active');
     } catch (error) {
+        clearInterval(pollInterval);
         alert('Error processing document: ' + error.message);
         loadingView.classList.remove('active');
         loadingView.classList.add('hidden');

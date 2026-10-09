@@ -13,6 +13,7 @@ from google.adk.runners import InMemoryRunner
 
 from tools.parser import parse_agreement
 from tools.rag import search_statutes
+from tools.audit import update_audit
 from agents import (
     clause_id_agent,
     invalid_clause_agent,
@@ -87,16 +88,27 @@ def run_agent(agent, prompt: str, agent_label: str = "Agent") -> str:
     return final_text.strip()
 
 
+def set_status(step: int, message: str):
+    """Write current execution step to temp file for frontend polling."""
+    try:
+        with open("/tmp/synapse_status.json", "w") as f:
+            json.dump({"step": step, "message": message}, f)
+    except Exception:
+        pass
+
+
 def process_contract(file_path: str) -> dict:
     """Batched Orchestrator workflow with clean logging."""
     total_start = time.time()
     session_id = str(uuid.uuid4())
     log(f"Starting session {session_id}")
     log(f"File: {file_path}")
+    set_status(0, "Initializing...")
 
     # 1. Ingestion
     t = time.time()
     log("Step 1/7 - Parsing agreement...")
+    set_status(1, "Parsing document and extracting text...")
     try:
         markdown_text = parse_agreement(file_path)
     except Exception as e:
@@ -107,6 +119,7 @@ def process_contract(file_path: str) -> dict:
     # 2. Clause Identification
     t = time.time()
     log("Step 2/7 - Extracting all clauses (1 LLM Call)...")
+    set_status(2, "Identifying and segmenting legal clauses...")
     clause_prompt = (
         "Extract clauses from this contract. Return strictly a JSON array of objects "
         "with 'clause_number' and 'text' keys:\n\n"
@@ -125,6 +138,7 @@ def process_contract(file_path: str) -> dict:
     # 3. Direct RAG Search
     t = time.time()
     log("Step 3/7 - Running local RAG search for all clauses...")
+    set_status(3, "Retrieving relevant statutes via Python RAG...")
     clauses_with_context = []
     for clause in clauses:
         c_num = clause.get("clause_number", "Unknown")
@@ -142,13 +156,13 @@ def process_contract(file_path: str) -> dict:
     # 4. Invalid Clause Analysis
     t = time.time()
     log("Step 4/7 - Identifying all illegal/unfair clauses (1 LLM Call)...")
+    set_status(4, "Evaluating clauses for illegality and unfairness...")
     invalid_prompt = (
         f"Session ID for Audit Logger: {session_id}\n"
         "Below is a JSON array of contract clauses along with relevant legal context from Indian Law (RAG results). "
         "Evaluate ALL of them. For each clause, use the context to determine if it is strictly illegal or legal-but-unfair. "
-        "IMPORTANT: Use your `update_audit` tool to log any illegal findings using the provided Session ID. "
         "You MUST output your final analysis strictly as a JSON array of objects with keys: "
-        "'clause_number', 'is_illegal' (boolean), 'is_unfair' (boolean), and 'reasoning'.\n\n"
+        "'clause_number', 'is_illegal' (boolean), 'is_unfair' (boolean), 'reasoning', and 'audit_trail' (object with statute_name, section_number, violation_reason or null).\n\n"
         f"{clauses_payload}"
     )
     legality_response = run_agent(invalid_clause_agent, invalid_prompt, "Invalid Clause Agent")
@@ -157,12 +171,27 @@ def process_contract(file_path: str) -> dict:
         if isinstance(legality_data, dict): legality_data = [legality_data]
     except Exception:
         legality_data = []
+
+    # Write audit trails to SQLite Database programmatically
+    for l_data in legality_data:
+        if l_data.get("is_illegal") and l_data.get("audit_trail"):
+            at = l_data["audit_trail"]
+            if isinstance(at, dict):
+                update_audit(
+                    session_id=session_id,
+                    clause_number=str(l_data.get("clause_number")),
+                    statute_name=at.get("statute_name", "Unknown Statute"),
+                    section_number=at.get("section_number", "N/A"),
+                    violation_reason=at.get("violation_reason", l_data.get("reasoning", "No reason provided"))
+                )
+
     legality_map = {str(r.get("clause_number")): r for r in legality_data}
     log("Legality analysis complete", t)
 
     # 5. Risk Assessment
     t = time.time()
     log("Step 5/7 - Assessing risks for all clauses (1 LLM Call)...")
+    set_status(5, "Quantifying legal and operational risks...")
     risk_prompt = (
         "Based on the following legality analysis of multiple clauses, assess the risk for each clause. "
         "Return your assessment strictly as a JSON array of objects with keys: 'clause_number', 'score', 'category' (e.g. High Risk). "
@@ -181,6 +210,7 @@ def process_contract(file_path: str) -> dict:
     # 6. Advisory / Redlines
     t = time.time()
     log("Step 6/7 - Generating advice & redlines for all clauses (1 LLM Call)...")
+    set_status(6, "Drafting redlines and counter-clauses...")
     advisory_prompt = (
         "For all the clauses evaluated in the analysis below, explain the issues in plain English and provide fair counter-clauses. "
         "Return strictly a JSON array of objects with keys: 'clause_number', 'short_explanation', 'suggested_alternative_clause'.\n\n"
@@ -210,6 +240,7 @@ def process_contract(file_path: str) -> dict:
     # 7. Final Validation
     t = time.time()
     log("Step 7/7 - Running final quality validation (1 LLM Call)...")
+    set_status(7, "Reviewing final analysis for contradictions...")
     report_json = json.dumps(analyzed_clauses, indent=2)
     validation_prompt = (
         "Review this final contract analysis report. Verify it is helpful, logically sound, "

@@ -36,12 +36,6 @@
                     </button>
                     <input type="file" id="fileInput" accept=".txt,.md,.pdf,.png,.jpg" hidden>
                     
-                    <div class="lang-toggles">
-                        <span class="active">EN</span>
-                        <span>हिं</span>
-                        <span>मरा</span>
-                    </div>
-                    
                     <button class="btn-primary" id="analyzeBtn">Analyze <span class="kbd">⌘↵</span></button>
                 </div>
             </div>
@@ -50,8 +44,22 @@
         <!-- LOADING VIEW -->
         <section id="loadingView" class="view hidden">
             <div class="loading-content">
-                <div class="spinner"></div>
                 <h2 class="hero-title" style="font-size: 2rem;">Agents are reviewing...</h2>
+                <div class="pipeline-graph">
+                    <div class="node" id="node-1"><div class="node-icon">📄</div><div class="node-label">Parser</div></div>
+                    <div class="connector"></div>
+                    <div class="node" id="node-2"><div class="node-icon">✂️</div><div class="node-label">Clause ID</div></div>
+                    <div class="connector"></div>
+                    <div class="node" id="node-3"><div class="node-icon">📚</div><div class="node-label">RAG</div></div>
+                    <div class="connector"></div>
+                    <div class="node" id="node-4"><div class="node-icon">⚖️</div><div class="node-label">Legality</div></div>
+                    <div class="connector"></div>
+                    <div class="node" id="node-5"><div class="node-icon">⚠️</div><div class="node-label">Risk</div></div>
+                    <div class="connector"></div>
+                    <div class="node" id="node-6"><div class="node-icon">💡</div><div class="node-label">Advisory</div></div>
+                    <div class="connector"></div>
+                    <div class="node" id="node-7"><div class="node-icon">🛡️</div><div class="node-label">Validator</div></div>
+                </div>
                 <p class="hero-subtitle" id="loadingStatus">Scanning clauses, checking statutes, and assessing risks.</p>
             </div>
         </section>
