@@ -1,6 +1,6 @@
-# Synapse: Agentic Legal Contract Analysis
+# Fine Print: Agentic Legal Contract Analysis
 
-Synapse is an automated, multi-agent legal review pipeline designed to protect individuals and small businesses from unfair, predatory, or legally unenforceable contracts. By combining local document parsing, hierarchical statutory RAG, Google ADK agents powered by Gemini, and a deterministic audit trail, Synapse flags illegal terms, quantifies multi-dimensional exposure, and provides fair, redlined counter-clauses in plain English.
+Fine Print is an automated, multi-agent legal review pipeline designed to protect individuals and small businesses from unfair, predatory, or legally unenforceable contracts. By combining local document parsing, hierarchical statutory RAG, Google ADK agents powered by Gemini, and a deterministic audit trail, Fine Print flags illegal terms, quantifies multi-dimensional exposure, and provides fair, redlined counter-clauses in plain English.
 
 ---
 
@@ -8,7 +8,7 @@ Synapse is an automated, multi-agent legal review pipeline designed to protect i
 Legal agreements are dense, convoluted, and heavily skewed in favor of drafting entities. Non-lawyers and small businesses frequently sign agreements without understanding hidden liabilities, unilateral termination powers, or outright void clauses. Traditional legal counsel is expensive and slow, leaving signers vulnerable to predatory conditions and unenforceable terms.
 
 ## Proposed Solution
-Synapse provides a real-time, transparent legal review pipeline:
+Fine Print provides a real-time, transparent legal review pipeline:
 1. **Parses** uploaded contracts and images natively into clean Markdown.
 2. **Segments** agreements into discrete, structured clauses.
 3. **Retrieves** relevant statutory constraints from Indian law via local hierarchical vector search.
@@ -21,7 +21,7 @@ Synapse provides a real-time, transparent legal review pipeline:
 
 ## Architectural Workflow
 
-Synapse utilizes a batched 7-stage pipeline to overcome LLM rate limits while preserving end-to-end legal reasoning:
+Fine Print utilizes a batched 7-stage pipeline to overcome LLM rate limits while preserving end-to-end legal reasoning:
 
 ```
 [Contract File / Text]
@@ -138,7 +138,7 @@ The backend provides the following REST endpoints via FastAPI (`src/app/main.py`
 ### 1. Clone & Install Dependencies
 ```bash
 git clone <repository-url>
-cd Synapse
+cd Fine Print
 uv sync
 ```
 
