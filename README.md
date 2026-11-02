@@ -137,7 +137,7 @@ The backend provides the following REST endpoints via FastAPI (`src/app/main.py`
 
 ### 1. Clone & Install Dependencies
 ```bash
-git clone <repository-url>
+git clone https://github.com/sahil-deo/FinePrint-v2
 cd Fine Print
 uv sync
 ```
